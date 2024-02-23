@@ -48,5 +48,19 @@ router.post("/courses", async (req, res) => {
     }
 })
 
+// update a course
+router.put("/courses/:id", async(req, res) => {
+    // find and update song from frontend
+    try {
+        const course = req.body
+        await Course.updateOne({_id : req.params.id},course)
+        console.log(course)
+        res.sendStatus(204) // successfully updated code
+    }
+    catch (err){
+        res.status(400).send(err)
+    }
+})
+
 app.use("/api", router);
 app.listen(3000);
