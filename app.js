@@ -73,5 +73,19 @@ router.delete("/courses/:id", async(req, res) => {
     }
 })
 
+router.get("/courses/:id", async (req, res) => {
+    try {
+        const course = await Course.findById(req.params.id);
+        if (!course) { // If course is not found
+            return res.status(404).send("Course not found");
+        }
+        res.json(course);
+    } catch (err) {
+        // Handle other errors
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+});
+
 app.use("/api", router);
 app.listen(3000);
