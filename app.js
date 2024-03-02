@@ -2,14 +2,37 @@
 
 const express = require('express');
 var cors = require('cors');
-
 const bodyparser = require('body-parser');
 const Course = require('./models/courses');
+const jwt = require('jwt-simple');
+const User = require('./models/users')
+
 const app = express();
 app.use(cors());
 
 app.use(express.json());
 const router = express.Router();
+const secret = "supersecret"
+
+// creates a user
+
+router.post("/user", async(res, req) => {
+    if(!req.body.username || !req.body.password){
+        res.status(400).json({error: "Missing username or password"})
+    }
+    const newUser = await newUser({
+        username: req.body.username,
+        password: req.body.password,
+        status: req.body.status
+    })
+    try {
+        await newUser.save()
+        res.sendStatus(201)
+    }
+    catch (err){
+        res.status(400).send(err)
+    }
+})
 
 // grab all courses in databse
 
