@@ -34,6 +34,38 @@ router.post("/user", async(res, req) => {
     }
 })
 
+
+// login
+router.post("/auth", async(res, req) => {
+    if(!req.body.username || !req.body.password) {
+        res.status(400).json({error: "Missing username or password"})
+        return 
+    }
+    await User.findOne({username: req.body.username}, function(err, user){
+        if(err){
+            res.status(400).send(err)
+        }
+        else if (!user){
+            res.status(401).json({error: "Bad Username"})
+        }
+        else {
+            if (user.password != req.body.password){
+                res.status(401).json({error: "Bad Password"})
+            }
+            else {
+                username2 = user.username
+                const token = jwt.encode({encode: user.username}, secret)
+                const auth = 1
+
+                res.json({
+                    username2,
+                    token: token,
+                    auth: auth})
+            }
+        }
+    })
+})
+
 // grab all courses in databse
 
 router.get("/courses", async (req, res) => {
