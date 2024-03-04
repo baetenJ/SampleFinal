@@ -14,58 +14,6 @@ app.use(express.json());
 const router = express.Router();
 const secret = "supersecret"
 
-// creates a user
-
-router.post("/user", async(res, req) => {
-    if(!req.body.username || !req.body.password){
-        res.status(400).json({error: "Missing username or password"})
-    }
-    const newUser = await newUser({
-        username: req.body.username,
-        password: req.body.password,
-        status: req.body.status
-    })
-    try {
-        await newUser.save()
-        res.sendStatus(201)
-    }
-    catch (err){
-        res.status(400).send(err)
-    }
-})
-
-
-// login
-router.post("/auth", async(res, req) => {
-    if(!req.body.username || !req.body.password) {
-        res.status(400).json({error: "Missing username or password"})
-        return 
-    }
-    await User.findOne({username: req.body.username}, function(err, user){
-        if(err){
-            res.status(400).send(err)
-        }
-        else if (!user){
-            res.status(401).json({error: "Bad Username"})
-        }
-        else {
-            if (user.password != req.body.password){
-                res.status(401).json({error: "Bad Password"})
-            }
-            else {
-                username2 = user.username
-                const token = jwt.encode({encode: user.username}, secret)
-                const auth = 1
-
-                res.json({
-                    username2,
-                    token: token,
-                    auth: auth})
-            }
-        }
-    })
-})
-
 // grab all courses in databse
 
 router.get("/courses", async (req, res) => {
@@ -142,8 +90,69 @@ router.get("/courses/:id", async (req, res) => {
     }
 });
 
+
+router.post("/user", async(res, req) => {
+    if(!req.body.username || !req.body.password){
+        res.status(400).json({error: "Missing username or password"})
+    }
+    const newUser = await newUser({
+        username: req.body.username,
+        password: req.body.password,
+        status: req.body.status
+    })
+    try {
+        await newUser.save()
+        res.sendStatus(201)
+    }
+    catch (err){
+        res.status(400).send(err)
+    }
+})
+
+
+// login
+router.post("/auth", async(req, res) => {
+    if(!req.body.username || !req.body.password) {
+        res.status(400).json({error: "Missing username or password"})
+        return 
+    }
+    let user = await User.findOne({username: req.body.username})
+
+    if (!user){
+        res.status(401).json({error: "Bad Username"})
+    }
+    else {
+        if (user.password != req.body.password){
+            res.status(401).json({error: "Bad Password"})
+        }
+        else {
+            username2 = user.username
+            const token = jwt.encode({username: user.username}, secret)
+            const auth = 1
+
+            res.json({
+                username2,
+                token: token,
+                auth: auth
+                })
+            }
+        }
+})
+
+router.get("/status", async(res,req) => {
+    if(!req.headers["x-auth"]){
+        return res.status(401).json({error: "Missing X-Auth"})
+    }
+    const token = req.headers["x-auth"]
+    try {
+        const decoded = jwt.decoded(token ,secret)
+        let users = User.find({}, "username status")
+        res.json(users)
+    }
+    catch(ex){
+        res.status(401).json({error: "Invalid jwt"})
+    }
+})
+
 app.use("/api", router);
-
-var port = process.env.PORT || 3000
-
-app.listen(port);
+app.listen(3000);
